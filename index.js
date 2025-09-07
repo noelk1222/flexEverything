@@ -28,12 +28,18 @@ async function getJSON(url) {
 async function getPaged(url) {
   let results = [];
   let cursor = "";
-  do {
-    const data = await getJSON(`${url}${cursor ? "&cursor=" + encodeURIComponent(cursor) : ""}`);
-    if (!data || !data.data) break;
-    results = results.concat(data.data);
-    cursor = data.nextPageCursor;
-  } while (cursor);
+  try {
+    do {
+      const data = await getJSON(
+        `${url}${cursor ? "&cursor=" + encodeURIComponent(cursor) : ""}`
+      );
+      if (!data || !data.data) break;
+      results = results.concat(data.data);
+      cursor = data.nextPageCursor;
+    } while (cursor);
+  } catch (err) {
+    console.error("Paged fetch failed:", url, err.message);
+  }
   return results;
 }
 
@@ -41,14 +47,21 @@ async function getPaged(url) {
 app.get("/full/:userId", async (req, res) => {
   const { userId } = req.params;
   try {
-    const profile = await getJSON(`https://users.roblox.com/v1/users/${userId}`);
+    const profile = await getJSON(
+      `https://users.roblox.com/v1/users/${userId}`
+    );
     if (!profile) return res.status(400).json({ error: "Invalid user" });
 
+    // Collectibles
     const collectibles = await getPaged(
       `https://inventory.roblox.com/v1/users/${userId}/assets/collectibles?limit=100`
     );
-    const totalRap = collectibles.reduce((sum, c) => sum + (c.recentAveragePrice || 0), 0);
+    const totalRap = collectibles.reduce(
+      (sum, c) => sum + (c.recentAveragePrice || 0),
+      0
+    );
 
+    // Badges & Groups
     const badges = await getPaged(
       `https://badges.roblox.com/v1/users/${userId}/badges?limit=100`
     );
@@ -57,40 +70,39 @@ app.get("/full/:userId", async (req, res) => {
     );
 
     // https://create.roblox.com/docs/reference/engine/enums/AssetType
-const assetTypes = {
-  tShirts: 2,
-  shirts: 11,
-  pants: 12,
+    const assetTypes = {
+      tShirts: 2,
+      shirts: 11,
+      pants: 12,
+      hats: 8,
+      faces: 18,
+      gear: 19,
+      heads: 17,
 
-  hats: 8,
-  faces: 18,
-  gear: 19,
-  heads: 17,
+      // Accessories
+      hairAccessories: 41,
+      faceAccessories: 42,
+      neckAccessories: 43,
+      shoulderAccessories: 44,
+      frontAccessories: 45,
+      backAccessories: 46,
+      waistAccessories: 47,
 
-  // Accessories (subcategories 41–47)
-  hairAccessories: 41,
-  faceAccessories: 42,
-  neckAccessories: 43,
-  shoulderAccessories: 44,
-  frontAccessories: 45,
-  backAccessories: 46,
-  waistAccessories: 47,
+      // Bundles & misc
+      packages: 3,
+      animations: 24,
+      decals: 1,
+    };
 
-  // Bundles & misc
-  packages: 3,
-  animations: 24,
-  decals: 1,
-};
+    // Inventory fetch (correct endpoint = /inventory/, not /assets/)
+    const inventory = {};
+    for (const [key, typeId] of Object.entries(assetTypes)) {
+      const url = `https://inventory.roblox.com/v1/users/${userId}/inventory/${typeId}?limit=100`;
+      const list = await getPaged(url);
+      inventory[key] = list || [];
+    }
 
-const inventory = {};
-for (const [key, typeId] of Object.entries(assetTypes)) {
-  const url = `https://inventory.roblox.com/v1/users/${userId}/inventory/${typeId}?limit=100`;
-  const list = await getPaged(url);
-  inventory[key] = list || [];
-}
-    
- const list = await getPaged(
-
+    // Social
     const friendsCount = await getJSON(
       `https://friends.roblox.com/v1/users/${userId}/friends/count`
     );
@@ -118,12 +130,9 @@ for (const [key, typeId] of Object.entries(assetTypes)) {
       },
     });
   } catch (err) {
-    console.error(err);
+    console.error("Full endpoint error:", err);
     res.status(500).json({ error: "Failed to fetch full player data" });
   }
 });
 
 app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
-
-
-
