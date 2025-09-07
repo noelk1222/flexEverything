@@ -83,13 +83,10 @@ const assetTypes = {
 };
 
 const inventory = {};
-    for (const [key, typeId] of Object.entries(assetTypes)) {
-      const list = await getPaged(
-        `https://inventory.roblox.com/v1/users/${userId}/assets/${typeId}?limit=100`
-        );
-      `https://inventory.roblox.com/v1/users/${userId}/inventory/${typeId}?limit=100`
-      );
-      inventory[key] = list || [];
+for (const [key, typeId] of Object.entries(assetTypes)) {
+  const url = `https://inventory.roblox.com/v1/users/${userId}/inventory/${typeId}?limit=100`;
+  const list = await getPaged(url);
+  inventory[key] = list || [];
 }
     
  const list = await getPaged(
@@ -127,5 +124,6 @@ const inventory = {};
 });
 
 app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
+
 
 
