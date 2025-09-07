@@ -74,6 +74,16 @@ async function fetchAssets(userId) {
   return result;
 }
 
+// Inventory fetch
+const inventory = {};
+for (const [key, typeId] of Object.entries(assetTypes)) {
+  const list = await getPaged(
+    `https://inventory.roblox.com/v1/users/${userId}/inventory/${typeId}?limit=100`
+  );
+  inventory[key] = list || [];
+}
+
+
 // 🎯 Full profile endpoint
 app.get("/full/:userId", async (req, res) => {
   const { userId } = req.params;
@@ -137,3 +147,4 @@ app.get("/full/:userId", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
+
