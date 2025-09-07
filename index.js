@@ -7,7 +7,7 @@ app.use(cors());
 
 const PORT = process.env.PORT || 3000;
 
-// 🔧 Helper to safely fetch JSON
+// 🔧 Safe fetch wrapper
 async function getJSON(url) {
   try {
     const res = await fetch(url);
@@ -19,7 +19,7 @@ async function getJSON(url) {
   }
 }
 
-// 🔧 Helper to paginate Roblox endpoints
+// 🔧 Handles cursor pagination
 async function getPaged(url) {
   let results = [];
   let cursor = "";
@@ -31,6 +31,27 @@ async function getPaged(url) {
   } while (cursor);
   return results;
 }
+
+// 🎯 Expanded asset types
+const assetTypes = {
+  tShirts: 2,
+  hats: 8,
+  pants: 12,
+  shirts: 11,
+  heads: 17,
+  faces: 18,
+  gear: 19,
+  accessories: 41, // general accessories
+  animations: 48,
+  bundles: 55,
+  emotes: 61,
+  plugins: 38,
+  decals: 13,
+  meshes: 40,
+  audio: 3,
+  places: 9,
+  models: 10
+};
 
 // 🎯 /full/:userId endpoint
 app.get("/full/:userId", async (req, res) => {
@@ -49,24 +70,13 @@ app.get("/full/:userId", async (req, res) => {
     // Groups
     const groups = await getJSON(`https://groups.roblox.com/v1/users/${userId}/groups/roles`);
 
-    // Inventory asset categories (example: hats=8, shirts=11, pants=12, faces=18, gear=19, heads=17, accessories, etc.)
-    const assetTypes = {
-      hats: 8,
-      shirts: 11,
-      pants: 12,
-      tShirts: 2,
-      faces: 18,
-      gear: 19,
-      heads: 17,
-      accessories: 41 // catch-all, but you can break down by accessory subtype
-    };
-
+    // Inventory — all asset categories
     const inventory = {};
     for (const [key, typeId] of Object.entries(assetTypes)) {
       inventory[key] = await getPaged(`https://inventory.roblox.com/v1/users/${userId}/assets/${typeId}?limit=100`);
     }
 
-    // Friends & followers counts (for flex titles like "Popular")
+    // Social stats
     const friendsCount = await getJSON(`https://friends.roblox.com/v1/users/${userId}/friends/count`);
     const followersCount = await getJSON(`https://friends.roblox.com/v1/users/${userId}/followers/count`);
     const followingCount = await getJSON(`https://friends.roblox.com/v1/users/${userId}/followings/count`);
