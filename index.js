@@ -70,29 +70,25 @@ app.get("/full/:userId", async (req, res) => {
     );
 
     // https://create.roblox.com/docs/reference/engine/enums/AssetType
-    const assetTypes = {
-      tShirts: 2,
-      shirts: 11,
-      pants: 12,
-      hats: 8,
-      faces: 18,
-      gear: 19,
-      heads: 17,
-
-      // Accessories
-      hairAccessories: 41,
-      faceAccessories: 42,
-      neckAccessories: 43,
-      shoulderAccessories: 44,
-      frontAccessories: 45,
-      backAccessories: 46,
-      waistAccessories: 47,
-
-      // Bundles & misc
-      packages: 3,
-      animations: 24,
-      decals: 1,
-    };
+const assetTypes = {
+  shirts: 11,       // ClassicShirt
+  pants: 12,        // ClassicPants
+  tShirts: 2,       // TShirt
+  hats: 8,
+  hairAccessories: 41,
+  faceAccessories: 42,
+  neckAccessories: 43,
+  shoulderAccessories: 44,
+  frontAccessories: 45,
+  backAccessories: 46,
+  waistAccessories: 47,
+  faces: 18,
+  gear: 19,
+  heads: 17,
+  packages: 3,      // Bundles
+  animations: 48,
+  decals: 1
+};
 
     // Inventory fetch (correct endpoint = /inventory/, not /assets/)
     const inventory = {};
@@ -136,3 +132,4 @@ app.get("/full/:userId", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
+
