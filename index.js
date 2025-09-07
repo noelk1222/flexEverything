@@ -56,7 +56,32 @@ app.get("/full/:userId", async (req, res) => {
       `https://groups.roblox.com/v1/users/${userId}/groups/roles`
     );
 
-    const assetTypes = { hats: 8, shirts: 11, pants: 12, tShirts: 2, faces: 18, gear: 19 };
+    // https://create.roblox.com/docs/reference/engine/enums/AssetType
+const assetTypes = {
+  tShirts: 2,
+  shirts: 11,
+  pants: 12,
+
+  hats: 8,
+  faces: 18,
+  gear: 19,
+  heads: 17,
+
+  // Accessories (subcategories 41–47)
+  hairAccessories: 41,
+  faceAccessories: 42,
+  neckAccessories: 43,
+  shoulderAccessories: 44,
+  frontAccessories: 45,
+  backAccessories: 46,
+  waistAccessories: 47,
+
+  // Bundles & misc
+  packages: 3,
+  animations: 24,
+  decals: 1,
+};
+
     const inventory = {};
     for (const [key, typeId] of Object.entries(assetTypes)) {
       const list = await getPaged(
@@ -98,3 +123,4 @@ app.get("/full/:userId", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
+
