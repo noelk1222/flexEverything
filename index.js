@@ -82,13 +82,17 @@ const assetTypes = {
   decals: 1,
 };
 
-    const inventory = {};
+const inventory = {};
     for (const [key, typeId] of Object.entries(assetTypes)) {
       const list = await getPaged(
         `https://inventory.roblox.com/v1/users/${userId}/assets/${typeId}?limit=100`
+        );
+      `https://inventory.roblox.com/v1/users/${userId}/inventory/${typeId}?limit=100`
       );
       inventory[key] = list || [];
-    }
+}
+    
+ const list = await getPaged(
 
     const friendsCount = await getJSON(
       `https://friends.roblox.com/v1/users/${userId}/friends/count`
@@ -123,4 +127,5 @@ const assetTypes = {
 });
 
 app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
+
 
