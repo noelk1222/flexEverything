@@ -43,6 +43,37 @@ async function getPaged(url) {
   return results;
 }
 
+// Asset types we care about
+const assetTypes = {
+  shirts: 11,       // ClassicShirt
+  pants: 12,        // ClassicPants
+  tShirts: 2,       // TShirt
+  hats: 8,
+  hairAccessories: 41,
+  faceAccessories: 42,
+  neckAccessories: 43,
+  shoulderAccessories: 44,
+  frontAccessories: 45,
+  backAccessories: 46,
+  waistAccessories: 47,
+  faces: 18,
+  gear: 19,
+  heads: 17,
+  packages: 3,      // Bundles
+  animations: 24,
+  decals: 1,
+};
+
+// 🔧 Fetch full user assets
+async function fetchAssets(userId) {
+  const result = {};
+  for (const [key, typeId] of Object.entries(assetTypes)) {
+    const url = `https://inventory.roblox.com/v1/users/${userId}/inventory/${typeId}?limit=100`;
+    result[key] = await getPaged(url);
+  }
+  return result;
+}
+
 // 🎯 Full profile endpoint
 app.get("/full/:userId", async (req, res) => {
   const { userId } = req.params;
@@ -69,34 +100,8 @@ app.get("/full/:userId", async (req, res) => {
       `https://groups.roblox.com/v1/users/${userId}/groups/roles`
     );
 
-    // https://create.roblox.com/docs/reference/engine/enums/AssetType
-const assetTypes = {
-  shirts: 11,       // ClassicShirt
-  pants: 12,        // ClassicPants
-  tShirts: 2,       // TShirt
-  hats: 8,
-  hairAccessories: 41,
-  faceAccessories: 42,
-  neckAccessories: 43,
-  shoulderAccessories: 44,
-  frontAccessories: 45,
-  backAccessories: 46,
-  waistAccessories: 47,
-  faces: 18,
-  gear: 19,
-  heads: 17,
-  packages: 3,      // Bundles
-  animations: 48,
-  decals: 1
-};
-
-    // Inventory fetch (correct endpoint = /inventory/, not /assets/)
-    const inventory = {};
-    for (const [key, typeId] of Object.entries(assetTypes)) {
-      const url = `https://inventory.roblox.com/v1/users/${userId}/inventory/${typeId}?limit=100`;
-      const list = await getPaged(url);
-      inventory[key] = list || [];
-    }
+    // Inventory (shirts, pants, hats, etc.)
+    const inventory = await fetchAssets(userId);
 
     // Social
     const friendsCount = await getJSON(
@@ -132,4 +137,3 @@ const assetTypes = {
 });
 
 app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
-
